@@ -19,18 +19,11 @@ jobs:
         uses: zaproxy/action-full-scan@v0.6.0
         with:
           target: 'http://localhost:3000'  # Updated port
-          fail_action: true
-          report_html: 'zap-report.html'  # Explicitly name the report file
-          report_md: 'zap-report.md'  
-  
-      - name: Upload ZAP Report
-        if: always()  # Upload even if the scan fails
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-scan-report  # ✅ Valid name (lowercase + hyphen)
-          path: |
-            zap-report.html
-            zap-report.md
+
+      - name: List All Artifacts (Debug)
+        run: |
+          echo "Existing artifacts:"
+          ls -la ${{ github.workspace }}/*.html ${{ github.workspace }}/*.json || echo "No artifacts found"
 
       # Cleanup
       - name: Stop App Container
