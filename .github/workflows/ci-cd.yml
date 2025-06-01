@@ -24,3 +24,19 @@ jobs:
     - run: npm run build --if-present
     - run: npm test
 
+  zap-fuzz:
+    name: OWASP ZAP Fuzz Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run ZAP Fuzz Scan via Docker
+        run: |
+          docker run -t owasp/zap2docker-stable zap-baseline.py \
+            -t https://shop.ishanainterio.com/ \
+            -r zap-fuzz-report.html \
+            -d
+
+      - name: Upload Fuzz Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-fuzz-report
+          path: zap-fuzz-report.html
