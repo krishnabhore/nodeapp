@@ -25,7 +25,7 @@ jobs:
   
       - name: Upload ZAP Report
         if: always()  # Upload even if the scan fails
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-scan-report  # ✅ Valid name (lowercase + hyphen)
           path: |
