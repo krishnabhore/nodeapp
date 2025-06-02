@@ -4,10 +4,6 @@ on:
   push:
       paths: 
       - 'terraform/**.tf'      
-      paths-ignore:
-      - '.github/workflows/ci-cd.yml'
-      - '.github/workflows/zap.yml'
-      
 
 jobs:
   tfsec-scan:
