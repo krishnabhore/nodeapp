@@ -2,8 +2,8 @@ name: Node.js CI
 
 on: 
   push:
-      paths-ignore:
-      - '.github/workflows/ci-cd.yml'
+      paths: 
+      - 'xyz.txt'      
 
 jobs:
   build:
