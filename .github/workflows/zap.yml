@@ -1,6 +1,10 @@
 name: DAST ZAP
 
-on: [push]
+on: 
+  push:
+      paths-ignore:
+      - '.github/workflows/ci-cd.yml'
+      - '.github/workflows/zap.yml'
 jobs:
   dast-scan:
     runs-on: ubuntu-latest
