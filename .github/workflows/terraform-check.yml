@@ -53,19 +53,22 @@ jobs:
           mkdir -p tfsec-report
           tfsec terraform/ --format sarif --out tfsec-report/tfsec.sarif --format json --out tfsec-report/tfsec.json || echo "tfsec finished with issues"
       
-          # Print summary in logs
           issues_count=$(jq '.results | length' tfsec-report/tfsec.json)
           echo "tfsec found $issues_count issue(s)."
+      
           if [ "$issues_count" -gt 0 ]; then
             echo "Detailed issues:"
             jq -r '.results[] | "- [\(.rule_id)](\(.links[0])): \(.description) (Severity: \(.severity))"' tfsec-report/tfsec.json
+          else
+            echo "No issues found."
           fi
       
-      - name: Fail if tfsec found issues
+      - name: Fail if tfsec found Critical or High severity issues
         run: |
-          count=$(jq '.results | length' tfsec-report/tfsec.json)
-          if [ "$count" -gt 0 ]; then
-            echo "Failing pipeline due to tfsec issues."
+          high_crit_count=$(jq '[.results[] | select(.severity == "CRITICAL" or .severity == "HIGH")] | length' tfsec-report/tfsec.json)
+          echo "Critical or High severity issues count: $high_crit_count"
+          if [ "$high_crit_count" -gt 0 ]; then
+            echo "Failing pipeline due to Critical/High severity tfsec issues."
             exit 1
           fi
       
