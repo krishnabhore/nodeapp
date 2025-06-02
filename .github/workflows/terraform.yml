@@ -1,0 +1,26 @@
+name: Terraform Security Scan (tfsec)
+
+on: 
+  push:
+      paths: 
+      - 'terraform/**.tf'      
+      paths-ignore:
+      - '.github/workflows/ci-cd.yml'
+      - '.github/workflows/zap.yml'
+      
+
+jobs:
+  tfsec-scan:
+    name: Run tfsec security scan
+    runs-on: ubuntu-latest  # Change to `self-hosted` if you're using a self-hosted runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install tfsec
+        run: |
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+      - name: Run tfsec
+        run: tfsec ./terraform/.
