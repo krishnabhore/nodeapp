@@ -1,6 +1,6 @@
 variable "azs" {
  type        = list(string)
- description = "Availability Zones IO"
+ description = "Availability Zones IO1"
  default     = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
 }
 
