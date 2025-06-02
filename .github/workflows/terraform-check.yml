@@ -1,0 +1,76 @@
+name: Terraform Full CI Checks
+
+on:
+  push:
+    paths:
+      - '**.tf'
+  pull_request:
+    paths:
+      - '**.tf'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  terraform-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/
+
+      - name: Install TFLint
+        run: |
+          set -e
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Run TFLint
+        run: tflint --recursive
+        working-directory: terraform/
+
+      - name: Install tfsec
+        run: |
+          set -e
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+      - name: Run tfsec
+        run: tfsec --format sarif --out tfsec.sarif terraform/
+
+      - name: Upload tfsec SARIF
+        uses: github/codeql-action/upload-sarif@v2
+        if: success()  # Only run if tfsec succeeded
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Setup Python (Checkov)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Checkov
+        run: |
+          set -e
+          pip install checkov
+
+      - name: Run Checkov
+        run: checkov -d terraform/ --output sarif --output-file-path checkov.sarif
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v2
+        if: success()  # Only run if checkov succeeded
+        with:
+          sarif_file: checkov.sarif
