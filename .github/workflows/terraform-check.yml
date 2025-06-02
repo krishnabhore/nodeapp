@@ -47,14 +47,25 @@ jobs:
           set -e
           curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
-      - name: Run tfsec
-        run: tfsec --format sarif --out tfsec.sarif terraform/
+      - name: Run tfsec and generate SARIF and Markdown report
+        id: tfsec
+        run: |
+          mkdir -p tfsec-report
+          tfsec terraform/ \
+            --format sarif --out tfsec-report/tfsec.sarif \
+            --format json --out tfsec-report/tfsec.json || echo "tfsec exited with issues"
+          
+          # Create a summary report
+          echo "## ⚠️ tfsec Issues Found" >> $GITHUB_STEP_SUMMARY
+          jq -r '.results[] | "- **\(.rule_id)** (\(.severity)): \(.description)"' tfsec-report/tfsec.json >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload tfsec SARIF
-        uses: github/codeql-action/upload-sarif@v2
-        if: success()  # Only run if tfsec succeeded
-        with:
-          sarif_file: tfsec.sarif
+      - name: Fail job if tfsec found issues
+        run: |
+          count=$(jq '.results | length' tfsec-report/tfsec.json)
+          if [ "$count" -gt 0 ]; then
+            echo "❌ tfsec found $count issues."
+            exit 1
+          fi
 
       - name: Setup Python (Checkov)
         uses: actions/setup-python@v5
